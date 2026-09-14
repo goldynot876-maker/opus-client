@@ -1,0 +1,42 @@
+name: Build Opus Client JAR
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-box: windows-latest # Running on Windows server to match your setup
+
+    steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Change Directory and Validate Wrapper Permissions
+      run: |
+        cd OpusClient-Full
+        if (Test-Path gradlew.bat) {
+            echo "Gradle wrapper script found."
+        } else {
+            echo "Generating missing gradle wrapper configuration..."
+            gradle wrapper --gradle-version 8.7 --no-configure
+        }
+
+    - name: Run Remote Code Compilation
+      run: |
+        cd OpusClient-Full
+        .\gradlew build -Ploom.officialMojangMappings=true --no-daemon
+
+    - name: Upload Completed JAR Asset
+      uses: actions/upload-artifact@v4
+      with:
+        name: opus-client-build
+        path: OpusClient-Full/build/libs/*.jar
