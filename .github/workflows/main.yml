@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-box: windows-latest # Running on Windows server to match your setup
+    runs-on: windows-latest # FIXED: Changed from runs-box to runs-on
 
     steps:
     - name: Checkout Source Code
@@ -20,13 +20,13 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    - name: Change Directory and Validate Wrapper Permissions
+    - name: Check Folder Structure and Wrapper
       run: |
         cd OpusClient-Full
         if (Test-Path gradlew.bat) {
             echo "Gradle wrapper script found."
         } else {
-            echo "Generating missing gradle wrapper configuration..."
+            echo "Generating clean gradle wrapper environment..."
             gradle wrapper --gradle-version 8.7 --no-configure
         }
 
