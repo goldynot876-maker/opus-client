@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest # Switched to Linux to handle permissions natively
 
     steps:
     - name: Checkout Source Code
@@ -20,30 +20,30 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    - name: Setup Headless Properties
+    - name: Grant Wrapper Execution Permissions
       run: |
-        # Force create properties definitions directly in the active build folders
-        if (Test-Path "OpusClient-Full") {
-            cd OpusClient-Full
-            echo "loom.officialMojangMappings=true" >> gradle.properties
-            echo "org.gradle.daemon=false" >> gradle.properties
-            gradle wrapper --gradle-version 8.7 --no-configure
-        } else {
-            echo "loom.officialMojangMappings=true" >> gradle.properties
-            echo "org.gradle.daemon=false" >> gradle.properties
-            gradle wrapper --gradle-version 8.7 --no-configure
-        }
+        # This locates your script files and unlocks them globally
+        if [ -d "OpusClient-Full" ]; then
+          cd OpusClient-Full
+          chmod +x gradlew || true
+          echo "loom.officialMojangMappings=true" >> gradle.properties
+          echo "org.gradle.daemon=false" >> gradle.properties
+        else
+          chmod +x gradlew || true
+          echo "loom.officialMojangMappings=true" >> gradle.properties
+          echo "org.gradle.daemon=false" >> gradle.properties
+        fi
 
     - name: Run Remote Code Compilation
       run: |
-        if (Test-Path "OpusClient-Full") {
-            cd OpusClient-Full
-            gradle genSources --no-daemon
-            gradle build --no-daemon
-        } else {
-            gradle genSources --no-daemon
-            gradle build --no-daemon
-        }
+        if [ -d "OpusClient-Full" ]; then
+          cd OpusClient-Full
+          ./gradlew genSources --no-daemon
+          ./gradlew build --no-daemon
+        else
+          ./gradlew genSources --no-daemon
+          ./gradlew build --no-daemon
+        fi
 
     - name: Upload Completed JAR Asset
       uses: actions/upload-artifact@v4
