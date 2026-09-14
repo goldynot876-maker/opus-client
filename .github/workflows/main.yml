@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest # FIXED: Changed from runs-box to runs-on
+    runs-on: windows-latest
 
     steps:
     - name: Checkout Source Code
@@ -20,23 +20,34 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    - name: Check Folder Structure and Wrapper
+    - name: Setup Headless Properties
       run: |
-        cd OpusClient-Full
-        if (Test-Path gradlew.bat) {
-            echo "Gradle wrapper script found."
+        # Force create properties definitions directly in the active build folders
+        if (Test-Path "OpusClient-Full") {
+            cd OpusClient-Full
+            echo "loom.officialMojangMappings=true" >> gradle.properties
+            echo "org.gradle.daemon=false" >> gradle.properties
+            gradle wrapper --gradle-version 8.7 --no-configure
         } else {
-            echo "Generating clean gradle wrapper environment..."
+            echo "loom.officialMojangMappings=true" >> gradle.properties
+            echo "org.gradle.daemon=false" >> gradle.properties
             gradle wrapper --gradle-version 8.7 --no-configure
         }
 
     - name: Run Remote Code Compilation
       run: |
-        cd OpusClient-Full
-        .\gradlew build -Ploom.officialMojangMappings=true --no-daemon
+        if (Test-Path "OpusClient-Full") {
+            cd OpusClient-Full
+            gradle genSources --no-daemon
+            gradle build --no-daemon
+        } else {
+            gradle genSources --no-daemon
+            gradle build --no-daemon
+        }
 
     - name: Upload Completed JAR Asset
       uses: actions/upload-artifact@v4
       with:
         name: opus-client-build
-        path: OpusClient-Full/build/libs/*.jar
+        path: |
+          **/build/libs/*.jar
