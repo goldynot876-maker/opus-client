@@ -24,4 +24,6 @@ jobs:
         gradle-version: 8.9
 
     - name: Build with Gradle
+      # This line forces GitHub to look inside your exact folders
+      working-directory: "OpusClient-1_21_11-Fabric-Full-Features/OpusClient-Full"
       run: gradle build
