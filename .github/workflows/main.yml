@@ -23,7 +23,12 @@ jobs:
       with:
         gradle-version: 8.9
 
-    - name: Build with Gradle
-      # This line forces GitHub to look inside your exact folders
-      working-directory: "OpusClient-1_21_11-Fabric-Full-Features/OpusClient-Full"
-      run: gradle build
+    - name: Auto-Detect and Build Mod
+      run: |
+        # Search the entire repository for build.gradle and change into that folder
+        TARGET_DIR=$(find . -name "build.gradle" -exec dirname {} \;)
+        echo "Found project folder at: $TARGET_DIR"
+        cd "$TARGET_DIR"
+        
+        # Run the build command inside the correct folder
+        gradle build
